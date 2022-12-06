@@ -123,7 +123,7 @@
 
 **Step4：运行启动类**：src/main/java/com/hackyle/log/viewer/RemoteLogViewerApp.java
 
-**Step5：**进入Chrome，在地址栏输入：http://localhost:8989/，进入日志查看首页
+**Step5：** 进入Chrome，在地址栏输入：http://localhost:8989/，进入日志查看首页
 
   
 
@@ -225,7 +225,7 @@ public void destroyConnect(Session sshSession) {
 
 **1.导入WebSocket的starter依赖**
 
-**2.事件处理器：**通过继承 TextWebSocketHandler 类并覆盖相应方法，可以对 websocket 的事件进行处理
+**2.事件处理器：** 通过继承 TextWebSocketHandler 类并覆盖相应方法，可以对 websocket 的事件进行处理
 
 **3.WS握手（连接）拦截器**
 
