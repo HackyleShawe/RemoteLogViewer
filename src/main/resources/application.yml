@@ -1,0 +1,19 @@
+server:
+  port: 8989
+  servlet:
+    context-path: /
+
+# SSH连接参数
+jsch:
+  host: 10.11.22.33
+  username: root
+  port: 22
+  password: toor
+
+websocket:
+  paths: /log/ws #定义WebSocket服务端对外暴露的接口。当定义多个时，使用英文逗号分割
+
+# 远程服务器上的日志文件的绝对路径
+# 例：/data/logs/app.log  #本质是执行命令"tail -10f /data/logs/app.log"，查看app.log文件的后10条记录
+log-path: /data/blog.hackyle.com/blog-business-logs/blog-business.log
+
