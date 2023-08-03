@@ -1,0 +1,58 @@
+/*固定顶部*/
+.top-sticky {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: pink;
+  margin: 5px auto;
+}
+.show-items {
+  margin: 3px 0;
+}
+.control-bar button {
+    margin: 0 20px;
+    background-color: aqua;
+    width: 90px;
+    height: 30px;
+}
+
+.search-box {
+  text-align: center;
+
+}
+.search-box .box-line {
+  margin: 3px 0;
+}
+.search-box input {
+  height: 20px;
+  width: 350px;
+}
+.search-box button {
+  height: 25px;
+  font-weight: bold;
+  background-color: #6cf363;
+}
+
+
+.message {
+  background-color: beige;
+  /*margin: 10px 15px;*/
+  /*padding: 3px 3px;*/
+  border: solid 2px red;
+}
+
+/*回到顶部*/
+#backToTopBtn {
+  z-index: 99;
+  width: 40px;
+  background-repeat: no-repeat;
+  background-position:center;
+  position: fixed;
+  bottom: 5%;
+  right: 2%;
+  cursor: pointer;
+  display: block;
+  color: red;
+  font-size: larger;
+}

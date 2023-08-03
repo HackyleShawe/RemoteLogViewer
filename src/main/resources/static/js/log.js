@@ -1,4 +1,4 @@
-let webSocketRootUrl = "ws://localhost:8989/log/ws"
+let webSocketRootUrl = "ws://localhost:8989/ws/log"
 let webSocket = null;
 
 $(function () {
@@ -8,8 +8,12 @@ $(function () {
 //点击了页面上的开始按钮
 $("#start").click(function () {
     $("#status").text("Started...");
-    let count = $('input:radio[name=count]:checked').val();
-    obtainLogBySocket(count);
+    //当前是那个日志目标
+    let targetCode = $('#targetCode').text();
+    //要捕获多少条历史日志
+    let historyItems = $('input:radio[name=historyItems]:checked').val();
+
+    obtainLogBySocket(targetCode, historyItems);
 });
 
 //点击了页面上的停止按钮
@@ -22,8 +26,8 @@ $("#stop").click(function () {
         }
 
         //发送Ajax请求，告诉Server端我要关闭了，你也关闭吧
-        $.get("/log/stopWebSocket?sid="+sessionId, function (data) {
-            console.log("The '/log/stopWebSocket' Response Close Status: ", data)
+        $.get("/log/stop?sid="+sessionId, function (data) {
+            console.log("The '/log/stop' Response Close Status: ", data)
         });
 
         //如果直接在Client端直接关闭，在Server端会抛异常（Caused by: java.io.IOException: 你的主机中的软件中止了一个已建立的连接。）
@@ -53,9 +57,9 @@ $("#clean").click(function () {
 /**
  * 发起WebSocket请求，获取数据
  */
-function obtainLogBySocket(count) {
-    count = count < 1 ? 1 : count;
-    webSocket = new WebSocket(webSocketRootUrl + "?count=" + count)
+function obtainLogBySocket(targetCode, historyItems) {
+    historyItems = historyItems < 1 ? 1 : historyItems;
+    webSocket = new WebSocket(webSocketRootUrl + "?targetCode=" +targetCode+ "&historyItems=" + historyItems)
     webSocket.onopen = function(evt) { //连接成功后的回调函数
         console.log("WebSocketClient Connection Opened.");
         // webSocket.send("Hello, I am Client."); //发送
@@ -63,7 +67,6 @@ function obtainLogBySocket(count) {
 
     webSocket.onmessage = function(evt) { //接收到消息的回调函数
         // console.log( "接收Server端发来的消息: " + evt.data); //接收
-
         if(evt.data.startsWith("sessionId:")) {
             //接收后端发来的本个连接Id
             let sidArr =  evt.data.split(":")
@@ -99,28 +102,12 @@ window.onbeforeunload = function () {
             return
         }
         //发送Ajax请求，告诉Server端我要关闭了，你也关闭吧
-        $.get("/log/stopWebSocket?sid="+sessionId, function (data) {
-            console.log("The '/log/stopWebSocket' Response Close Status: ", data)
+        $.get("/log/stop?sid="+sessionId, function (data) {
+            console.log("The '/log/stop' Response Close Status: ", data)
         });
 
         webSocket.close();
     }
-}
-
-/**
- * 复制内容到剪贴板
- * Notice：需要导入clipboard.min.js
- * @param content 要复制的内容
- */
-function copyHandle(content){
-    let copy = (e)=>{
-        e.preventDefault()
-        e.clipboardData.setData('text/plain',content)
-        // alert('复制成功')
-        document.removeEventListener('copy',copy)
-    }
-    document.addEventListener('copy',copy)
-    document.execCommand("Copy");
 }
 
 /**

@@ -17,16 +17,15 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private WebSocketInterceptor webSocketInterceptor;
 
-    @Value("${websocket.paths}")
-    private String websocketPaths;
+    @Value("${websocket.endpoints}")
+    private String websocketEndpoints;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        String[] paths = websocketPaths.split(",");
+        String[] paths = websocketEndpoints.split(",");
 
-        registry
-                .addHandler(logWebSocketHandler, paths)
-                .addInterceptors(webSocketInterceptor)
-                .setAllowedOrigins("*");
+        registry.addHandler(logWebSocketHandler, paths) //向这些paths，推送logWebSocketHandler这个处理器中的数据
+                .addInterceptors(webSocketInterceptor) //注入WebSocket拦截器
+                .setAllowedOrigins("*"); //允许跨域访问
     }
 }

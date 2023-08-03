@@ -1,51 +1,16 @@
-package com.hackyle.log.viewer.service.impl;
+package com.hackyle.log.viewer.util;
 
-import com.hackyle.log.viewer.service.JschService;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.util.Properties;
 
 /**
  * 使用jsch工具模拟SSH客户端，与SSH服务端建立连接
  */
-@Service
-public class JschServiceImpl implements JschService {
-    /**
-     * SSH连接参数
-     */
-    private String host;
-    private String username;
-    private int port;
-    private String password;
+public class JschUtils {
 
-    /**
-     * 通过Spring注入配置文件中的数据
-     */
-    @Value("${jsch.host}")
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    @Value("${jsch.username}")
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    @Value("${jsch.port}")
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    @Value("${jsch.password}")
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    @Override
-    public Session buildConnect() {
+    public static Session buildSshSession(String host, int port, String username, String password) {
         Session sshSession = null;
         try {
             JSch jSch = new JSch(); //创建一个ssh通讯核心类
@@ -61,7 +26,7 @@ public class JschServiceImpl implements JschService {
             if(sshSession.isConnected()) {
                 System.out.println("SSH连接成功：" + sshSession.getHost() + ":" + sshSession.getPort() +"  "+ sshSession);
             } else {
-                throw new RuntimeException("SSH连接失败");
+                throw new RuntimeException("SSH连接失败" + sshSession.getHost() + ":" + sshSession.getPort() +"  "+ sshSession);
             }
         } catch (Exception e) {
             System.out.println("SSH连接出现异常：" + e);
@@ -70,8 +35,7 @@ public class JschServiceImpl implements JschService {
         return sshSession;
     }
 
-    @Override
-    public void destroyConnect(Session sshSession) {
+    public static void releaseSshSession(Session sshSession) {
         if(sshSession != null) {
             sshSession.disconnect();
             if(!sshSession.isConnected()) {
@@ -79,4 +43,5 @@ public class JschServiceImpl implements JschService {
             }
         }
     }
+
 }

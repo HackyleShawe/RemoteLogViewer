@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="robots" content="all">
+  <meta name="author" content="Hackyle; Kyle Shawe">
+  <meta name="reply-to" content="kyleshawe@outlook.com;1617358182@qq.com">
+  <meta name="generator" content="Sublime Text 3; VSCode">
+  <meta name="keywords" content="Remote Log Viewer">
+  <meta name="description" content="一款简单易用的远程日志查看器，可实时查看云服务器上的日志数据。A SIMPLE and EFFECTIVE log viewer, which can load log data from a remote host log file in real time.">
+  <meta name="copyright" content="Copy Right: 2023 HACKYLE. All rights reserved">
+
+  <link rel="icon" href="/img/favicon.ico">
+  <title>Hackyle - Remote Log Viewer - Index</title>
+
+  <link rel="stylesheet" href="/css/log.css">
+</head>
+
+<body>
+  <div class="top-sticky">
+    <div>
+      Code: <span th:text="${logTarget.code}" id="targetCode">NULL</span>
+      &emsp;Host: <span th:text="${logTarget.host}">NULL</span>
+      &emsp;Port: <span th:text="${logTarget.port}">NULL</span>
+      &emsp;LogPath: <span th:text="${logTarget.logPath}">NULL</span>
+    </div>
+    <hr/>
+
+    <div class="show-items">
+      <!--从日志文件中获取多少条历史的日志记录?-->
+      <span>What Are U Want to Check Items in Log File of History? </span>
+      <input type="radio" name="historyItems" value="1" checked="checked">Just 1 Item
+      <input type="radio" name="historyItems" value="10">Show 10 Items
+      <input type="radio" name="historyItems" value="100">Show 100 Items
+      <input type="radio" name="historyItems" value="1000">Show 1000 Items
+    </div>
+
+    <div class="control-bar">
+      <button id="start">Start</button>
+      <button id="stop">Stop</button>
+      <button id="clean">Clean</button>
+      <span>Status: </span>
+      <span id="status">Ready.</span>
+    </div>
+    <hr/>
+
+    <div class="search-box">
+      <div class="box-line">
+        <button type="button" id="searchBtn01">Search</button>
+        <input type="text" id="searchText01" placeholder="Type Keyword to Search (Click to Copy, Dbclick to Reset)">
+        &emsp;&emsp;&emsp;&emsp;
+        <button type="button" id="searchBtn02">Search</button>
+        <input type="text" id="searchText02" placeholder="Type Keyword to Search (Click to Copy, Dbclick to Reset)">
+      </div>
+
+      <div class="box-line">
+        <button type="button" id="searchBtn03">Search</button>
+        <input type="text" id="searchText03" placeholder="Type Keyword to Search (Click to Copy, Dbclick to Reset)">
+        &emsp;&emsp;&emsp;&emsp;
+        <button type="button" id="searchBtn04">Search</button>
+        <input type="text" id="searchText04" placeholder="Type Keyword to Search (Click to Copy, Dbclick to Reset)">
+      </div>
+    </div>
+  </div>
+  <hr/>
+
+  <div class="message" id="msgBody">
+    <p id="msgHead">Message Body</p>
+  </div>
+
+  <div id="backToTopBtn" title="回到顶部" onclick="topFunction()">TOP</div>
+</body>
+
+<script src="/js/jquery-3.3.1.min.js"></script>
+<script src="/js/log.js"></script>
+</html>

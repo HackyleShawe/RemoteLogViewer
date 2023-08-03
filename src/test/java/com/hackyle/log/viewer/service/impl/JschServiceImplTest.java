@@ -1,10 +1,9 @@
 package com.hackyle.log.viewer.service.impl;
 
-import com.hackyle.log.viewer.service.JschService;
+import com.hackyle.log.viewer.util.JschUtils;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.Session;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.BufferedReader;
@@ -15,15 +14,16 @@ import java.nio.charset.StandardCharsets;
 @SpringBootTest
 class JschServiceImplTest {
 
-    @Autowired
-    private JschService jschService;
-
     @Test
     public void testConnect() throws Exception {
         //建立SSH连接后要执行的命令
         String remoteCommand = "date";
+        String host = "10.1.1.1";
+        int port = 22;
+        String username = "root";
+        String password = "hackyle";
 
-        Session sshSession = jschService.buildConnect();
+        Session sshSession = JschUtils.buildSshSession(host, port, username, password);
         ChannelExec channelExec = (ChannelExec) sshSession.openChannel("exec");
         channelExec.setCommand(remoteCommand);
         channelExec.connect();
@@ -38,7 +38,7 @@ class JschServiceImplTest {
         }
 
         is.close();
-        jschService.destroyConnect(sshSession);
+        JschUtils.releaseSshSession(sshSession);
 
         //输出
         //连接成功，会话：com.jcraft.jsch.Session@59018eed
@@ -46,5 +46,5 @@ class JschServiceImplTest {
         //Mon Dec  5 11:16:12 CST 2022
         //session状态：false
     }
-  
+
 }

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="robots" content="all">
+  <meta name="author" content="Hackyle; Kyle Shawe">
+  <meta name="reply-to" content="kyleshawe@outlook.com;1617358182@qq.com">
+  <meta name="generator" content="Sublime Text 3; VSCode">
+  <meta name="keywords" content="Remote Log Viewer">
+  <meta name="description" content="一款简单易用的远程日志查看器，可实时查看云服务器上的日志数据。A SIMPLE and EFFECTIVE log viewer, which can load log data from a remote host log file in real time.">
+  <meta name="copyright" content="Copy Right: 2023 HACKYLE. All rights reserved">
+
+  <link rel="icon" href="/img/favicon.ico">
+  <title>Hackyle - Remote Log Viewer - Index</title>
+
+  <link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+  <!--Banner展示-->
+  <div class="banner">
+    <div class="banner-logo"><img src="/img/hackyle.jpg"></div>
+    <div class="banner-title">Remote Log Viewer</div>
+    <div style="clear:both"></div>
+  </div>
+
+  <!--已有Target的列表展示-->
+  <div class="target">
+    <table align="center" border="1px" bordercolor="red">
+      <caption><b>Log Targets</b></caption>
+      <tr>
+        <th>Code</th>
+        <th>Host</th>
+        <th>Port</th>
+        <th>Username</th>
+        <th>LogPath</th>
+        <th>Start Log</th>
+      </tr>
+
+      <tr th:each="target : ${targetList}">
+        <td th:text="${target.code}"></td>
+        <td th:text="${target.host}"></td>
+        <td th:text="${target.port}"></td>
+        <td th:text="${target.username}"></td>
+        <td th:text="${target.logPath}"></td>
+        <td> <a th:href="${'/log/' + target.code}" target="_blank">ViewLog</a> </td>
+      </tr>
+    </table>
+  </div>
+
+</body>
+</html>

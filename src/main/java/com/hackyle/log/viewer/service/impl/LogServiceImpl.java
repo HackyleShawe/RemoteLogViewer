@@ -1,6 +1,7 @@
 package com.hackyle.log.viewer.service.impl;
 
 import com.hackyle.log.viewer.handler.LogWebSocketHandler;
+import com.hackyle.log.viewer.pojo.LogTargetBean;
 import com.hackyle.log.viewer.pojo.WsSessionBean;
 import com.hackyle.log.viewer.service.LogService;
 import com.jcraft.jsch.ChannelExec;
@@ -15,13 +16,10 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Service
 public class LogServiceImpl implements LogService {
-
-    /** 通过SSH连接后要执行的Shell命令 */
-    @Value("${log-path}")
-    private String logPath;
 
     @Autowired
     private LogWebSocketHandler logWebSocketHandler;
@@ -40,19 +38,8 @@ public class LogServiceImpl implements LogService {
         WebSocketSession wsSession = wsSessionBean.getWebSocketSession();
         Session sshSession = wsSessionBean.getSshSession();
 
-        //从域对象中获取调用WebSocketClient传递过来的参数
-        Object countObj = wsSession.getAttributes().get("count");
-        int count = 1;
-        if(countObj != null) {
-            try {
-                count = Integer.parseInt(String.valueOf(countObj).trim());
-            } catch (Exception e) {
-                System.out.println("read2Integer转换出现异常：" + e);
-            }
-        }
-
         //String command = "ssh tpbbsc01 \"tail -" +count+ "f " +logPath+ "\""; //二级SSH跳板机在这里修改
-        String command = "tail -" +count+ "f " +logPath;
+        String command = "tail -" +wsSessionBean.getHistoryItems()+ "f " + wsSessionBean.getLogTargetBean().getLogPath();
         System.out.println("command: " + command);
 
         //创建一个执行Shell命令的Channel

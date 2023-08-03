@@ -27,8 +27,11 @@ public class WebSocketInterceptor implements HandshakeInterceptor {
             HttpServletRequest httpRequest = ((ServletServerHttpRequest) request).getServletRequest();
 
             //获取调用WebSocket传递过来的参数，放入域对象中
-            String count = httpRequest.getParameter("count");
-            attributes.put("count", count);
+            String historyItems = httpRequest.getParameter("historyItems");
+            attributes.put("historyItems", historyItems); //要捕获多少条历史日志
+
+            String targetCode = httpRequest.getParameter("targetCode");
+            attributes.put("targetCode", targetCode); //当前是那个日志目标
         }
 
         return true;

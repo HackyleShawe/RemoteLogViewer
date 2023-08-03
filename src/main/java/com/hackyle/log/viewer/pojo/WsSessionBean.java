@@ -10,11 +10,17 @@ public class WsSessionBean {
     /** WebSocket Client与Server的连接会话ID */
     private String wsSessionId;
 
-    /** WebSocket Client与Server的连接 */
+    /** WebSocket Client与Server的连接会话 */
     private WebSocketSession webSocketSession;
 
-    /** SSH连接 */
+    /** 此个WS的连接参数信息 */
+    private LogTargetBean logTargetBean;
+
+    /** SSH连接会话 */
     private Session sshSession;
+
+    /** 要捕获多少条历史日志 */
+    private int historyItems;
 
     public String getWsSessionId() {
         return wsSessionId;
@@ -32,11 +38,27 @@ public class WsSessionBean {
         this.webSocketSession = webSocketSession;
     }
 
+    public LogTargetBean getLogTargetBean() {
+        return logTargetBean;
+    }
+
+    public void setLogTargetBean(LogTargetBean logTargetBean) {
+        this.logTargetBean = logTargetBean;
+    }
+
     public Session getSshSession() {
         return sshSession;
     }
 
     public void setSshSession(Session sshSession) {
         this.sshSession = sshSession;
+    }
+
+    public int getHistoryItems() {
+        return historyItems;
+    }
+
+    public void setHistoryItems(int historyItems) {
+        this.historyItems = historyItems;
     }
 }
