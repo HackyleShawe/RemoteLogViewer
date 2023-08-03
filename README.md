@@ -271,7 +271,7 @@ log:
 
 ![](./img/frontend01.png)
 
-> **src/main/resources/static/js/index.js**
+> **src/main/resources/static/js/log.js**
 
 ### 显示历史日志的条数
 
@@ -297,7 +297,7 @@ Stop：前端手动关闭WebSocket，请求后端接口，关闭WebSocket Server
 
 ![](./img/frontend04.png)
 
-> src/main/resources/static/js/index.js
+> src/main/resources/static/js/log.js
 
 ### 页内关键字搜索
 
@@ -395,7 +395,7 @@ function copyHandle(content){
 
 ### 前端
 
-存入sessionStorage：src/main/resources/static/js/index.js
+存入sessionStorage：src/main/resources/static/js/log.js
 
 ![](./img/frontend07.png)
 
