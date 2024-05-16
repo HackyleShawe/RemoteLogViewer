@@ -10,23 +10,23 @@ websocket:
 log:
   targets:
     - code: A001 #需要唯一标识此条记录
-      host: 47.97.178.120 #SSH连接参数
+      host: 192.168.80.25 #SSH连接参数
       port: 22
       username: root
-      password: hackyle.1916
+      password: kyleshawe
       # 远程服务器上的日志文件的绝对路径
       # 例：/data/logs/app.log  #本质是执行命令"tail -10f /data/logs/app.log"，查看app.log文件的后10条记录
-      logPath: /data/blog.hackyle.com/blog-business-logs/blog-business.log
+      logPath: /usr/local/nginx/logs/access.log
     - code: A002
-      host: 47.97.178.120
+      host: 192.168.80.25
       port: 22
       username: root
-      password: hackyle.1916
-      logPath: /data/blog.hackyle.com/blog-consumer-logs/blog-consumer.log
-    - code: A003
-      host: 47.97.178.120
-      port: 22
-      username: root
-      password: hackyle.1916
-      logPath: /opt/minio/init.log
-
+      password: kyleshawe
+      logPath: /usr/local/nginx/logs/error.log
+#    - code: A003
+#      host: 192.168.80.25
+#      port: 22
+#      username: root
+#      password: kyleshawe
+#      logPath: /usr/local/nginx/logs/data.log
+#

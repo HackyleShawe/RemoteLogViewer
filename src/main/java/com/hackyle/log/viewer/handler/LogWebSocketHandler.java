@@ -4,6 +4,7 @@ import com.hackyle.log.viewer.pojo.LogTargetBean;
 import com.hackyle.log.viewer.pojo.WsSessionBean;
 import com.hackyle.log.viewer.service.LogService;
 import com.hackyle.log.viewer.util.JschUtils;
+
 import com.jcraft.jsch.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,9 @@ public class LogWebSocketHandler extends TextWebSocketHandler implements WebSock
     @Autowired
     private LogService logService;
 
+    /**
+     * 注入要抓取的日志目标列表
+     */
     @Autowired
     private List<LogTargetBean> logTargetBeanList;
 

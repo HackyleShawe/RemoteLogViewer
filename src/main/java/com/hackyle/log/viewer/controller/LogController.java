@@ -3,11 +3,14 @@ package com.hackyle.log.viewer.controller;
 import com.hackyle.log.viewer.pojo.LogTargetBean;
 import com.hackyle.log.viewer.service.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
-
 
 @RestController
 public class LogController {
@@ -16,7 +19,9 @@ public class LogController {
     @Autowired
     private LogService logService;
 
-
+    /**
+     * 首页：展示所有已经配置了的日志抓取目标
+     */
     @RequestMapping("/")
     public ModelAndView index(ModelAndView modelAndView) {
         modelAndView.addObject("targetList", logTargetBeanList);
@@ -25,6 +30,11 @@ public class LogController {
         return modelAndView;
     }
 
+    /**
+     * 日志实时抓取、查看、页内搜索页面
+     * @param code 日志抓取目标的唯一标识
+     * @return templates/log.html
+     */
     @RequestMapping("/log/{code}")
     public ModelAndView log(@PathVariable("code") String code, ModelAndView modelAndView) {
         LogTargetBean targetBean = null;
