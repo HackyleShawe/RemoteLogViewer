@@ -5,7 +5,7 @@ server:
 
 websocket:
   # 定义WebSocket服务端对外暴露的接口。当定义多个时，使用英文逗号分割。注意不要再有'/ws'开头的请求URL
-  endpoints: /ws/log
+  endpoints: /ws/log,/ws/search
 
 log:
   targets:
@@ -16,13 +16,13 @@ log:
       password: kyleshawe
       # 远程服务器上的日志文件的绝对路径
       # 例：/data/logs/app.log  #本质是执行命令"tail -10f /data/logs/app.log"，查看app.log文件的后10条记录
-      logPath: /usr/local/nginx/logs/access.log
+      logPath: /data/log/blog-business.log
     - code: A002
       host: 192.168.80.25
       port: 22
       username: root
       password: kyleshawe
-      logPath: /usr/local/nginx/logs/error.log
+      logPath: /data/log/blog-consumer.log
 #    - code: A003
 #      host: 192.168.80.25
 #      port: 22

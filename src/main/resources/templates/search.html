@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="robots" content="all">
+  <meta name="author" content="Hackyle; Kyle Shawe">
+  <meta name="reply-to" content="kyleshawe@outlook.com;1792715147@qq.com">
+  <meta name="generator" content="Sublime Text 3; VSCode">
+  <meta name="keywords" content="Remote Log Viewer">
+  <meta name="description" content="日志文件的关键字、时间范围、日志级别的搜索">
+  <meta name="copyright" content="Copy Right: 2023-2024 HACKYLE. All rights reserved">
+
+  <link rel="icon" href="/img/favicon.ico">
+  <title>Search - Remote Log Viewer - Hackyle</title>
+
+  <link rel="stylesheet" href="/css/search.css">
+</head>
+<body>
+  <div class="top-sticky">
+    <div>
+      >>> Code: <span th:text="${logTarget.code}" id="targetCode">NULL</span>
+      &emsp;Host: <span th:text="${logTarget.host}">NULL</span>
+      &emsp;Port: <span th:text="${logTarget.port}">NULL</span>
+      &emsp;LogPath: <span th:text="${logTarget.logPath}">NULL</span>
+    </div>
+    <hr/>
+
+    <div class="search-box">
+      >>> <input type="text" id="keywords" placeholder="Type Keywords to Search (Split by Space)">
+      <button type="button" id="search">Search</button>
+      <button id="stop">Stop</button>
+      <button id="clean">Clean</button>
+      <span>Status: </span>
+      <span id="status">Ready.</span>
+    </div>
+    <hr/>
+
+    <div class="page-search-box">
+      <div class="box-line">
+        <button type="button" id="searchBtn01">Page Search</button>
+        <input type="text" id="searchText01" placeholder="Type Keyword to Search (Click to Copy, Dbclick to Reset)">
+        &emsp;&emsp;&emsp;&emsp;
+        <button type="button" id="searchBtn02">Page Search</button>
+        <input type="text" id="searchText02" placeholder="Type Keyword to Search (Click to Copy, Dbclick to Reset)">
+      </div>
+    </div>
+  </div>
+
+  <div class="message" id="msgBody">
+    <div>>>> Notice: Please pay attention to querying keywords, avoiding full file export, to prevent out of memory! </div>
+    <div>>>> Examples:</div>
+    <div>&emsp;&emsp;1. grep -i "关键字" 文件绝对路径</div>
+    <div>&emsp;&emsp;2. grep -i "^关键字" 文件绝对路径</div>
+    <div>&emsp;&emsp;3. grep -i "关键字$" 文件绝对路径</div>
+    <div>&emsp;&emsp;4. grep -E -i "关键字1|关键字2" 文件绝对路径</div>
+    <div>&emsp;&emsp;5. grep -E -i "正则表达式" 文件绝对路径</div>
+
+    <div>&emsp;&emsp;查询某个时间段内的日志记录：
+      <div>&emsp;&emsp;&emsp;&emsp;1.查询6点的所有日志：grep '2024:06' access.log  #注意，这是基于nginx日志的时间格式</div>
+      <div>&emsp;&emsp;&emsp;&emsp;2.查询6点和7点的所有日志：grep '2024:0[6-7]' access.log</div>
+      <div>&emsp;&emsp;&emsp;&emsp;3.查询6点15分到30分的所有日志：grep '2024:06:[1-2]' access.log</div>
+    </div>
+
+    <p id="msgHead">Message Body</p>
+  </div>
+
+  <div id="backToTopBtn" title="回到顶部" onclick="topFunction()">TOP</div>
+</body>
+
+<script src="/js/jquery-3.3.1.min.js"></script>
+<script src="/js/search.js"></script>
+</html>

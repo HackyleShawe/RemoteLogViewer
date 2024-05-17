@@ -1,11 +1,9 @@
 package com.hackyle.log.viewer.handler;
 
-import com.hackyle.log.viewer.pojo.LogTargetBean;
 import com.hackyle.log.viewer.pojo.WsSessionBean;
 import com.hackyle.log.viewer.service.LogService;
 import com.hackyle.log.viewer.util.JschUtils;
 
-import com.jcraft.jsch.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -15,7 +13,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,12 +30,6 @@ public class LogWebSocketHandler extends TextWebSocketHandler implements WebSock
     private LogService logService;
 
     /**
-     * 注入要抓取的日志目标列表
-     */
-    @Autowired
-    private List<LogTargetBean> logTargetBeanList;
-
-    /**
      * 连接建立成功时调用
      * 1.创建WS会话
      * 2.接收前端传递的参数
@@ -47,52 +38,15 @@ public class LogWebSocketHandler extends TextWebSocketHandler implements WebSock
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession wsSession) throws Exception {
-        System.out.println("WebSocketServer连接建立成功：" + wsSession.getId());
+        String wsClientURI = wsSession.getUri().toString();
+        System.out.println("WebSocketServer收到客户端连接：" + wsClientURI + "，sessionID：" + wsSession.getId());
 
-        WsSessionBean wsSessionBean = new WsSessionBean();
-        wsSessionBean.setWebSocketSession(wsSession);
-
-        Object targetCode = wsSession.getAttributes().get("targetCode"); //当前是那个日志目标
-        LogTargetBean targetBean = null;
-        for (LogTargetBean logTargetBean : logTargetBeanList) {
-            if(logTargetBean.getCode().equals(String.valueOf(targetCode))) {
-                targetBean = logTargetBean;
-                break;
-            }
+        //根据URI跳转到不同的处理逻辑
+        if(wsClientURI.contains("/ws/log")) {
+            logService.sendRealtimeLog(wsSession);
+        } else {
+            logService.sendSearchLog(wsSession);
         }
-        if(null == targetBean) {
-            wsSession.close();
-            return;
-        }
-        wsSessionBean.setLogTargetBean(targetBean);
-
-        Object historyItemsObj = wsSession.getAttributes().get("historyItems"); //要捕获多少条历史日志
-        int historyItems = 1;
-        if(historyItemsObj != null) {
-            try {
-                historyItems = Integer.parseInt(String.valueOf(historyItemsObj).trim());
-            } catch (Exception e) {
-                System.out.println("read2Integer转换出现异常：" + e);
-            }
-        }
-        wsSessionBean.setHistoryItems(historyItems);
-
-
-        Session sshSession = JschUtils.buildSshSession(targetBean.getHost(), targetBean.getPort(), targetBean.getUsername(), targetBean.getPassword());
-        wsSessionBean.setSshSession(sshSession);
-
-        //缓存当前已经创建的连接
-        livingSessionMap.putIfAbsent(wsSession.getId(), wsSessionBean);
-        //if(null == livingSessionMap.get(wsSession.getId())) {
-        //    //缓存当前已经创建的连接
-        //    livingSessionMap.put(wsSession.getId(), wsSessionBean);
-        //}
-
-        //先把SessionId发给前端，规定好一个格式，方便前端判定
-        wsSession.sendMessage(new TextMessage("sessionId:"+wsSession.getId()));
-
-        //WebSocket的前后端建立连接成功，立即调用日志推动逻辑，将数据推送给客户端
-        logService.sendLog2BrowserClient(wsSessionBean);
     }
 
     /**
@@ -145,4 +99,7 @@ public class LogWebSocketHandler extends TextWebSocketHandler implements WebSock
         return false;
     }
 
+    public static Map<String, WsSessionBean> getLivingSessionMap() {
+        return livingSessionMap;
+    }
 }

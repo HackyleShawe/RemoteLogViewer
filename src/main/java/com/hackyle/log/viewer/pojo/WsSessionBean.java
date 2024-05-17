@@ -22,6 +22,9 @@ public class WsSessionBean {
     /** 要捕获多少条历史日志 */
     private int historyItems;
 
+    /** 要搜索的关键词，使用-分割 */
+    private String keywords;
+
     public String getWsSessionId() {
         return wsSessionId;
     }
@@ -60,5 +63,13 @@ public class WsSessionBean {
 
     public void setHistoryItems(int historyItems) {
         this.historyItems = historyItems;
+    }
+
+    public String getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(String keywords) {
+        this.keywords = keywords;
     }
 }

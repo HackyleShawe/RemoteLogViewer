@@ -30,44 +30,45 @@
 
 # 功能特性
 
-**功能特性列表**
+**Features**
 
 - 可在YML配置文件中**自定义SSH**服务地址和**日志文件**的位置
 - 支持打开**多个**的**前端页面**，**分别**抓取日志数据**渲染**到页面，但只能抓取一个日志文件的数据
 - 可查看该日志文件的**历史数据**
 - 可**实时**抓取日志文件中**新产生**的日志数据
 - 对当前页面上的日志数据进行**关键字查询**
+- 对日志文件进行**全文件搜索**
 
-**后续将会支持的功能**
+**TODO**
 
 - 现阶段只**支持**获取文本文件中的日志数据，后续将可支持其他格式（例如**压缩文件**）的日志数据
 - ……
 
-## 展示日志目标列表
+## 实时日志
+
+### 展示日志目标列表
 
 展示所有已经配置了的日志抓取目标。点击ViewLog，跳转到该个目标的日志查看页面
 
-![](./img/feat00.png)
+![](./img/feat-realtime-01.png)
 
-## 同时抓取
+### 同时抓取
 
 支持打开**多个**的**前端页面**，**分别**抓取日志数据**渲染**到页面，但只能抓取一个日志文件的数据
 
-![](./img/feat01.png)
+![](./img/feat-realtime-02.png)
 
-
-
-## 显示历史记录
+### 显示历史记录
 
 可查看该日志文件的**历史数据**
 
-![](./img/feat02.png)
+![](./img/feat-realtime-03.png)
 
-## 实时抓取
+### 实时抓取
 
 可**实时**抓取日志文件中**新产生**的日志数据
 
-![](./img/feat03.png)
+![](./img/feat-realtime-04.png)
 
 **Start**：开始抓取日志文件中的历史记录，然后实时获取新产生的日志
 
@@ -75,15 +76,26 @@
 
 **Clean**：清除当前页面上的所有日志数据，但不会断开连接，还是会实时地呈现后端推送过来的日志信息
 
-## 页内搜索
+### 页内搜索
 
 对当前页面上的日志数据进行**关键字查询**
 
-![](./img/feat04.png)
+![](./img/feat-realtime-05.png)
 
 - 单击搜索框，将粘贴板上的数据复制到此个搜索框内
-
 - 双击搜索框，清除此个搜索框内的数据
+
+## 全文件搜索
+
+从首页进入全文件搜索页面
+
+![](./img/feat-search-01.png)
+
+**全文件搜索示例**
+
+![](./img/feat-search-02.png)
+
+
 
 # 技术栈
 
@@ -146,19 +158,19 @@
 log:
   targets:
     - code: A001 #需要唯一标识此条记录
-      host: 47.97.178.120 #SSH连接参数
+      host: 192.168.80.25 #SSH连接参数
       port: 22
       username: root
-      password: hackyle.1916
+      password: kyleshawe
       # 远程服务器上的日志文件的绝对路径
       # 例：/data/logs/app.log  #本质是执行命令"tail -10f /data/logs/app.log"，查看app.log文件的后10条记录
-      logPath: /data/blog.hackyle.com/blog-business-logs/blog-business.log
+      logPath: /data/log/blog-business.log
     - code: A002
-      host: 47.97.178.120
+      host: 192.168.80.25
       port: 22
       username: root
-      password: hackyle.1916
-      logPath: /data/blog.hackyle.com/blog-consumer-logs/blog-consumer.log
+      password: kyleshawe
+      logPath: /data/log/blog-consumer.log
 ```
 
 **定义实体类去映射接收：** com/hackyle/log/viewer/pojo/LogTargetBean.java
@@ -181,22 +193,6 @@ log:
 - com/hackyle/log/viewer/util/JschUtils.java
 - Session **buildSshSession** (String host, int port, String username, String password) 构建并返回SSH连接会话
 - void **releaseSshSession** (Session sshSession) 释放一个SSH连接会话
-
-### 日志数据获取与推送逻辑
-
-**com/hackyle/log/viewer/service/impl/LogServiceImpl.java**
-
- **主要逻辑**
-
-1.   准备要执行的Shell命令：tail -1f 日志文件的绝对路径，例如：tail -1f /data/blog.hackyle.com/log-business-logs/blog-business.log
-
-2.   获取sshSession，创建一个执行Shell命令的Channel
-
-3.   从Channel中读取流，包装为字符流，一次读取一行日志数据
-
-4.   获取WebSocket Session，只要它没有被关闭，就将日志数据通过该Session推送出去
-
-![](./img/backend01.png)
 
 ### 整合WebSocket Server
 
@@ -264,9 +260,108 @@ log:
 - 将事件处理器、握手拦截器注入到WebSocketHandlerRegistry
 - 设置跨域访问
 
-## 前端
 
- 
+
+### 实时日志数据获取与推送
+
+**com/hackyle/log/viewer/service/impl/LogServiceImpl.java**
+
+ **主要逻辑**
+
+1.   准备要执行的Shell命令：tail -1f 日志文件的绝对路径，例如：tail -1f /data/blog.hackyle.com/log-business-logs/blog-business.log
+
+2.   获取sshSession，创建一个执行Shell命令的Channel
+
+3.   从Channel中读取流，包装为字符流，一次读取一行日志数据
+
+4.   获取WebSocket Session，只要它没有被关闭，就将日志数据通过该Session推送出去
+
+```java
+private void sendRealtimeLogToWebSocketClient(WsSessionBean wsSessionBean) throws Exception {
+    WebSocketSession wsSession = wsSessionBean.getWebSocketSession();
+    Session sshSession = wsSessionBean.getSshSession();
+
+    //String command = "ssh tpbbsc01 \"tail -" +count+ "f " +logPath+ "\""; //二级SSH跳板机在这里修改
+    String command = "tail -" +wsSessionBean.getHistoryItems()+ "f " + wsSessionBean.getLogTargetBean().getLogPath();
+    System.out.println("command: " + command);
+
+    //创建一个执行Shell命令的Channel
+    ChannelExec channelExec = (ChannelExec) sshSession.openChannel("exec");
+    channelExec.setCommand(command);
+    channelExec.connect();
+    InputStream inputStream = channelExec.getInputStream();
+
+    //包装为字符流，方便每次读取一行
+    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+    String buf = "";
+    while ((buf = reader.readLine()) != null) {
+        if(wsSession.isOpen()) {
+            //往WebSocket中推送数据
+            wsSession.sendMessage(new TextMessage(buf));
+        }
+    }
+
+    //WebSocket、SSH Session的关闭，通过本类下的‘closeWebSocketServer’方法控制
+}
+```
+
+
+
+### 全文件搜索日志数据获取与推送
+
+**com/hackyle/log/viewer/service/impl/LogServiceImpl.java**
+
+ **主要逻辑**
+
+1.   准备要执行的Shell命令：grep [OPTION]... PATTERN 日志文件的绝对路径，例如：grep -i "登录入参" /data/blog.hackyle.com/log-business-logs/blog-business.log
+
+2.   获取sshSession，创建一个执行Shell命令的Channel
+
+3.   从Channel中读取流，包装为字符流，一次读取一行日志数据
+
+4.   获取WebSocket Session，只要它没有被关闭，就将日志数据通过该Session推送出去
+
+```java
+private void sendSearchLogToWebSocketClient(WsSessionBean wsSessionBean) throws Exception {
+    WebSocketSession wsSession = wsSessionBean.getWebSocketSession();
+    Session sshSession = wsSessionBean.getSshSession();
+
+    String keywords = wsSessionBean.getKeywords();
+    String[] ksArr = keywords.split("-");
+
+    String command = "";
+    if(ksArr.length == 1) { //只有一个关键字，直接搜索
+        //-E:支持正则，-i:忽略大小写
+        command = "grep -E -i \"" + keywords + "\" " + wsSessionBean.getLogTargetBean().getLogPath();
+    } else { //多个关键字
+        String kws = String.join("|", ksArr);
+        command = "grep -E -i \"" + kws + "\" " + wsSessionBean.getLogTargetBean().getLogPath();
+    }
+
+    System.out.println("command: " + command);
+
+    //创建一个执行Shell命令的Channel
+    ChannelExec channelExec = (ChannelExec) sshSession.openChannel("exec");
+    channelExec.setCommand(command);
+    channelExec.connect();
+    InputStream inputStream = channelExec.getInputStream();
+
+    //包装为字符流，方便每次读取一行
+    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+    String buf = "";
+    while ((buf = reader.readLine()) != null) {
+        if(wsSession.isOpen()) {
+            //往WebSocket中推送数据
+            wsSession.sendMessage(new TextMessage(buf));
+        }
+
+    }
+}
+```
+
+
+
+## 前端
 
 ### 整合WebSocket Client
 
@@ -282,13 +377,9 @@ log:
 
 > **src/main/resources/static/js/log.js**
 
-### 显示历史日志的条数
-
-![](./img/frontend02.png)
-
 ### 抓取控制
 
-![](./img/frontend03.png)
+![](./img/frontend02.png)
 
 Start：开始抓取日志文件中的历史记录，然后实时获取新产生的日志
 
@@ -304,7 +395,7 @@ Start：创建WebSocket实例，将后端发来的数据，不断追加到某个
 
 Stop：前端手动关闭WebSocket，请求后端接口，关闭WebSocket Server
 
-![](./img/frontend04.png)
+![](./img/frontend03.png)
 
 > src/main/resources/static/js/log.js
 
@@ -312,9 +403,7 @@ Stop：前端手动关闭WebSocket，请求后端接口，关闭WebSocket Server
 
 在本个页面内，进行关键字搜索。本质是模拟浏览器的Ctrl+F，进行HTML内容搜索
 
-![](./img/frontend05.png)
-
-![](./img/frontend06.png)
+![](./img/frontend04.png)
 
 **调用window.find()方法**
 
@@ -396,7 +485,20 @@ function copyHandle(content){
 
 接收前端请求：com/hackyle/log/viewer/controller/LogController.java
 
-![](./img/backend02.png)
+```java
+/**
+  * 提供一个普通接口，强制关闭WebSocketServer端
+  */
+@RequestMapping("/log/stop")
+@ResponseBody
+public String stopWebSocket(@RequestParam("sid") String sid) {
+    if(null == sid || "".equals(sid.trim())) {
+        return "SessionID缺失";
+    }
+
+    return logService.closeWebSocketServer(sid) ? "WebSocketServer关闭成功" : "WebSocketServer关闭失败";
+}
+```
 
 业务：com/hackyle/log/viewer/service/impl/LogServiceImpl.java#closeWebSocketServer
 
@@ -406,11 +508,11 @@ function copyHandle(content){
 
 存入sessionStorage：src/main/resources/static/js/log.js
 
-![](./img/frontend07.png)
+![](./img/frontend05.png)
 
 **关闭WebSocket连接时，携带sessionId**：src/main/resources/static/js/index.js
 
-![](./img/frontend08.png)
+![](./img/frontend06.png)
 
 # 打成Jar运行
 

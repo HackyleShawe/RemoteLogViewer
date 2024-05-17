@@ -4,6 +4,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
@@ -26,12 +27,30 @@ public class WebSocketInterceptor implements HandshakeInterceptor {
         if (request instanceof ServletServerHttpRequest) {
             HttpServletRequest httpRequest = ((ServletServerHttpRequest) request).getServletRequest();
 
-            //获取调用WebSocket传递过来的参数，放入域对象中
-            String historyItems = httpRequest.getParameter("historyItems");
-            attributes.put("historyItems", historyItems); //要捕获多少条历史日志
+            String requestURL = httpRequest.getRequestURL().toString();
+            //System.out.println("WebSocket请求路径：" + requestURI);
 
             String targetCode = httpRequest.getParameter("targetCode");
             attributes.put("targetCode", targetCode); //当前是那个日志目标
+
+            if(requestURL.contains("/ws/log")) { //实时日志
+                //获取调用WebSocket传递过来的参数，放入域对象中
+                String historyItems = httpRequest.getParameter("historyItems");
+                attributes.put("historyItems", historyItems); //要捕获多少条历史日志
+
+            } else if(requestURL.contains("/ws/search")) { //搜索日志
+                String keywords = httpRequest.getParameter("keywords");
+                if(StringUtils.isEmpty(keywords)) {
+                    System.out.println("关键字不能为空，已拦截");
+                    return false;
+                } else {
+                    attributes.put("keywords", keywords); //要搜索的关键字
+                }
+
+            } else {
+                System.out.println("其他非法请求，已拦截");
+                return false;
+            }
         }
 
         return true;

@@ -56,6 +56,31 @@ public class LogController {
     }
 
     /**
+     * 日志文件的关键字搜索
+     * @param code 日志抓取目标的唯一标识
+     * @return templates/search.html
+     */
+    @RequestMapping("/search/{code}")
+    public ModelAndView search(@PathVariable("code") String code, ModelAndView modelAndView) {
+        LogTargetBean targetBean = null;
+        for (LogTargetBean logTargetBean : logTargetBeanList) {
+            if(logTargetBean.getCode().equals(code)) {
+                targetBean = logTargetBean;
+                break;
+            }
+        }
+
+        if(null == targetBean) {
+            return index(modelAndView);
+        }
+
+        modelAndView.addObject("logTarget", targetBean);
+        modelAndView.setViewName("search");
+
+        return modelAndView;
+    }
+
+    /**
      * 提供一个普通接口，强制关闭WebSocketServer端
      */
     @RequestMapping("/log/stop")
