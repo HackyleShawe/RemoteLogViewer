@@ -1,0 +1,14 @@
+
+.idea
+*.iml
+
+logs
+
+# 排除所有.idea目录
+*.idea
+#排除所有target目录
+*target
+
+# 排除vue相关目录
+*dist
+*node_modules

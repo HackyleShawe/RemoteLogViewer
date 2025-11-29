@@ -33,9 +33,9 @@ public class LogController {
     /**
      * 日志实时抓取、查看、页内搜索页面
      * @param code 日志抓取目标的唯一标识
-     * @return templates/log.html
+     * @return templates/log-realtime.html
      */
-    @RequestMapping("/log/{code}")
+    @RequestMapping("/log/realtime/{code}")
     public ModelAndView log(@PathVariable("code") String code, ModelAndView modelAndView) {
         LogTargetBean targetBean = null;
         for (LogTargetBean logTargetBean : logTargetBeanList) {
@@ -50,7 +50,7 @@ public class LogController {
         }
 
         modelAndView.addObject("logTarget", targetBean);
-        modelAndView.setViewName("log");
+        modelAndView.setViewName("log-realtime");
 
         return modelAndView;
     }
@@ -58,9 +58,9 @@ public class LogController {
     /**
      * 日志文件的关键字搜索
      * @param code 日志抓取目标的唯一标识
-     * @return templates/search.html
+     * @return templates/log-search.html
      */
-    @RequestMapping("/search/{code}")
+    @RequestMapping("/log/search/{code}")
     public ModelAndView search(@PathVariable("code") String code, ModelAndView modelAndView) {
         LogTargetBean targetBean = null;
         for (LogTargetBean logTargetBean : logTargetBeanList) {
@@ -75,7 +75,7 @@ public class LogController {
         }
 
         modelAndView.addObject("logTarget", targetBean);
-        modelAndView.setViewName("search");
+        modelAndView.setViewName("log-search");
 
         return modelAndView;
     }
