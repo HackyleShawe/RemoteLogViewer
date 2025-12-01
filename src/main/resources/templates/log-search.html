@@ -29,10 +29,10 @@
     <div class="search-box">
       >>> <input type="text" id="keywords" placeholder="Type Keywords to Search (Split by Space)">
       <button type="button" id="search">Search</button>
-      <button id="stop">Stop</button>
+      <!--<button id="stop">Stop</button>-->
       <button id="clean">Clean</button>
-      <span>Status: </span>
-      <span id="status">Ready.</span>
+      <!--<span>Status: </span>-->
+      <!--<span id="status">Ready.</span>-->
     </div>
     <hr/>
 
@@ -55,6 +55,7 @@
     <div>&emsp;&emsp;3. grep -i "关键字$" 文件绝对路径</div>
     <div>&emsp;&emsp;4. grep -E -i "关键字1|关键字2" 文件绝对路径</div>
     <div>&emsp;&emsp;5. grep -E -i "正则表达式" 文件绝对路径</div>
+    <div>&emsp;&emsp;6. grep -E -i "正则表达式" 文件绝对路径 | grep "关键字" | grep "关键字"</div>
 
     <div>&emsp;&emsp;查询某个时间段内的日志记录：
       <div>&emsp;&emsp;&emsp;&emsp;1.查询6点的所有日志：grep '2024:06' access.log  #注意，这是基于nginx日志的时间格式</div>
@@ -69,5 +70,5 @@
 </body>
 
 <script src="/js/jquery-3.3.1.min.js"></script>
-<script src="/js/search.js"></script>
+<script src="/js/log-search.js"></script>
 </html>

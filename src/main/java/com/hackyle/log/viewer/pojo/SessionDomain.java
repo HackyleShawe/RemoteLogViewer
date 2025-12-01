@@ -6,7 +6,7 @@ import org.springframework.web.socket.WebSocketSession;
 /**
  * 每个WebSocketSession关联的相关数据对象
  */
-public class WsSessionBean {
+public class SessionDomain {
     /** WebSocket Client与Server的连接会话ID */
     private String wsSessionId;
 

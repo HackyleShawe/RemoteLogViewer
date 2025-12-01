@@ -5,7 +5,7 @@ server:
 
 websocket:
   # 定义WebSocket服务端对外暴露的接口。当定义多个时，使用英文逗号分割。注意不要再有'/ws'开头的请求URL
-  endpoints: /ws/log,/ws/search
+  endpoints: /ws/log/realtime,/ws/log/search  # 含义分别是：日志实时抓取、日志关键字搜索
 
 log:
   targets:

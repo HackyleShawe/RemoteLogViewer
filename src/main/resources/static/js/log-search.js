@@ -1,4 +1,4 @@
-let webSocketRootUrl = "ws://localhost:8989/ws/search"
+let webSocketRootUrl = "ws://localhost:8989/ws/log/search"
 let webSocket = null;
 
 $(function () {
@@ -54,10 +54,11 @@ function closeWebSocket() {
  * 发起WebSocket请求，获取数据
  */
 function obtainLogBySocket(targetCode, keywords) {
-    webSocket = new WebSocket(webSocketRootUrl + "?targetCode=" +targetCode+ "&keywords=" + keywords)
+    webSocket = new WebSocket(webSocketRootUrl)
     webSocket.onopen = function(evt) { //连接成功后的回调函数
         console.log("WebSocketClient Connection Opened.");
-        // webSocket.send("Hello, I am Client."); //发送
+        webSocket.send("targetCode=" +targetCode+ "&keywords=" + keywords);
+
     };
 
     webSocket.onmessage = function(evt) { //接收到消息的回调函数

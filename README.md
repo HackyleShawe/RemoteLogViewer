@@ -141,12 +141,18 @@
  **主要流程**
 
 1.   **前端发起**一个WebSocket连接到后端
-
 2.   连接建立成功后，**后端**通过**SSH连接到远程**服务器
-
 3.   执行**日志文件查看命令**：tail -1f 日志文件的绝对路径，例如：tail -1f /data/blog.hackyle.com/blog-business-logs/blog-business.log
-
 4.   **获取**到该个命令的执行**结果**，通过WebSocket**推送**到前端**页面**上
+
+**要点：**在一个浏览器页面，点一次Start，开启一个WebSocket连接、一个SSH连接，当点击Stop时，关闭WebSocket连接、SSH连接。
+
+**为什么不是一个浏览器页面，一个Websocket、SSH连接？**
+
+- 如果是这种情况，参数只能通过wbesocket的send()、handleTextMessage()方法传递
+- 第一次点击Start，会创建SSH连接，执行tail命令读取日志文件流，并保持流写出到WebSocket，
+- 第二次点击Start，会因为第一次点击的文件流没有关闭，导致第二次点击的SSH连接无法建立
+- 况且，一旦点击次数很多，那些开辟的SSH连接、tail命令的文件流累计起来，无法关闭！
 
 ## 后端
 
@@ -222,7 +228,7 @@ log:
 
 #### 事件处理器
 
-**com/hackyle/log/viewer/handler/LogWebSocketHandler.java**
+**com.hackyle.log.viewer.ws.LogWebSocketHandler**
 
 - 定义WebSocket的一系列回调函数
 
@@ -244,7 +250,7 @@ log:
 
 #### 握手拦截器
 
-**com/hackyle/log/viewer/interceptor/WebSocketInterceptor.java**
+**com.hackyle.log.viewer.ws.WebSocketInterceptor**
 
 - beforeHandshake：在握手前触发；afterHandshake：在握手后触发。
 
@@ -254,7 +260,7 @@ log:
 
 #### 对外暴露ws接口
 
- **com/hackyle/log/viewer/config/WebSocketConfig.java**
+ **com.hackyle.log.viewer.ws.WebSocketConfig**
 
 - 定义ws对外的访问接口
 - 将事件处理器、握手拦截器注入到WebSocketHandlerRegistry
@@ -264,7 +270,7 @@ log:
 
 ### 实时日志数据获取与推送
 
-**com/hackyle/log/viewer/service/impl/LogServiceImpl.java**
+**com.hackyle.log.viewer.ws.LogWebSocketService**
 
  **主要逻辑**
 
@@ -277,12 +283,12 @@ log:
 4.   获取WebSocket Session，只要它没有被关闭，就将日志数据通过该Session推送出去
 
 ```java
-private void sendRealtimeLogToWebSocketClient(WsSessionBean wsSessionBean) throws Exception {
-    WebSocketSession wsSession = wsSessionBean.getWebSocketSession();
-    Session sshSession = wsSessionBean.getSshSession();
+private void sendRealtimeLogToWebSocketClient(WsSessionBean sessionDomain) throws Exception {
+    WebSocketSession wsSession = sessionDomain.getWebSocketSession();
+    Session sshSession = sessionDomain.getSshSession();
 
     //String command = "ssh tpbbsc01 \"tail -" +count+ "f " +logPath+ "\""; //二级SSH跳板机在这里修改
-    String command = "tail -" +wsSessionBean.getHistoryItems()+ "f " + wsSessionBean.getLogTargetBean().getLogPath();
+    String command = "tail -" +sessionDomain.getHistoryItems()+ "f " + sessionDomain.getLogTargetBean().getLogPath();
     System.out.println("command: " + command);
 
     //创建一个执行Shell命令的Channel
@@ -309,7 +315,7 @@ private void sendRealtimeLogToWebSocketClient(WsSessionBean wsSessionBean) throw
 
 ### 全文件搜索日志数据获取与推送
 
-**com/hackyle/log/viewer/service/impl/LogServiceImpl.java**
+**com.hackyle.log.viewer.ws.LogWebSocketService**
 
  **主要逻辑**
 
@@ -322,20 +328,20 @@ private void sendRealtimeLogToWebSocketClient(WsSessionBean wsSessionBean) throw
 4.   获取WebSocket Session，只要它没有被关闭，就将日志数据通过该Session推送出去
 
 ```java
-private void sendSearchLogToWebSocketClient(WsSessionBean wsSessionBean) throws Exception {
-    WebSocketSession wsSession = wsSessionBean.getWebSocketSession();
-    Session sshSession = wsSessionBean.getSshSession();
+private void sendSearchLogToWebSocketClient(WsSessionBean sessionDomain) throws Exception {
+    WebSocketSession wsSession = sessionDomain.getWebSocketSession();
+    Session sshSession = sessionDomain.getSshSession();
 
-    String keywords = wsSessionBean.getKeywords();
+    String keywords = sessionDomain.getKeywords();
     String[] ksArr = keywords.split("-");
 
     String command = "";
     if(ksArr.length == 1) { //只有一个关键字，直接搜索
         //-E:支持正则，-i:忽略大小写
-        command = "grep -E -i \"" + keywords + "\" " + wsSessionBean.getLogTargetBean().getLogPath();
+        command = "grep -E -i \"" + keywords + "\" " + sessionDomain.getLogTargetBean().getLogPath();
     } else { //多个关键字
         String kws = String.join("|", ksArr);
-        command = "grep -E -i \"" + kws + "\" " + wsSessionBean.getLogTargetBean().getLogPath();
+        command = "grep -E -i \"" + kws + "\" " + sessionDomain.getLogTargetBean().getLogPath();
     }
 
     System.out.println("command: " + command);
@@ -375,7 +381,7 @@ private void sendSearchLogToWebSocketClient(WsSessionBean wsSessionBean) throws 
 
 ![](./img/frontend01.png)
 
-> **src/main/resources/static/js/log.js**
+> **src/main/resources/static/js/log-realtime.js**
 
 ### 抓取控制
 
@@ -397,7 +403,7 @@ Stop：前端手动关闭WebSocket，请求后端接口，关闭WebSocket Server
 
 ![](./img/frontend03.png)
 
-> src/main/resources/static/js/log.js
+> src/main/resources/static/js/log-realtime.js
 
 ### 页内关键字搜索
 
@@ -500,13 +506,11 @@ public String stopWebSocket(@RequestParam("sid") String sid) {
 }
 ```
 
-业务：com/hackyle/log/viewer/service/impl/LogServiceImpl.java#closeWebSocketServer
-
-实现：com/hackyle/log/viewer/handler/LogWebSocketHandler.java#closeWebSocketServer
+实现：com.hackyle.log.viewer.service.impl.LogServiceImpl.java#closeWebSocketServer
 
 ### 前端
 
-存入sessionStorage：src/main/resources/static/js/log.js
+存入sessionStorage：src/main/resources/static/js/log-realtime.js
 
 ![](./img/frontend05.png)
 

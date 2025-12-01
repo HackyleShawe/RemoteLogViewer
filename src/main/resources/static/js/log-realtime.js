@@ -1,4 +1,4 @@
-let webSocketRootUrl = "ws://localhost:8989/ws/log"
+let webSocketRootUrl = "ws://localhost:8989/ws/log/realtime"
 let webSocket = null;
 
 $(function () {
@@ -59,10 +59,10 @@ $("#clean").click(function () {
  */
 function obtainLogBySocket(targetCode, historyItems) {
     historyItems = historyItems < 1 ? 1 : historyItems;
-    webSocket = new WebSocket(webSocketRootUrl + "?targetCode=" +targetCode+ "&historyItems=" + historyItems)
+    webSocket = new WebSocket(webSocketRootUrl)
     webSocket.onopen = function(evt) { //连接成功后的回调函数
         console.log("WebSocketClient Connection Opened.");
-        // webSocket.send("Hello, I am Client."); //发送
+        webSocket.send("targetCode="+targetCode+ "&historyItems=" + historyItems); //发送
     };
 
     webSocket.onmessage = function(evt) { //接收到消息的回调函数
