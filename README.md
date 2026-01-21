@@ -32,25 +32,36 @@
 
 **Features**
 
-- 可在YML配置文件中**自定义SSH**服务地址和**日志文件**的位置
-- 支持打开**多个**的**前端页面**，**分别**抓取日志数据**渲染**到页面，但只能抓取一个日志文件的数据
-- 可查看该日志文件的**历史数据**
-- 可**实时**抓取日志文件中**新产生**的日志数据
-- 对当前页面上的日志数据进行**关键字查询**
-- 对日志文件进行**全文件搜索**
+- 实时日志：可**实时**抓取日志文件中**新产生**的日志数据
+- 历史日志
+  - 可查看该日志文件的**历史数据**
+  - 在整个日志文件中进行**搜索**
+- 对当前页面上的日志进行**关键字查询**，高亮显示
+- 支持打开**多个**的**前端页面**，**分别**抓取日志数据**渲染**到页面，多个页面之间互不影响，但只能抓取一个日志文件的数据
+- 可在YML配置文件中**自定义SSH**服务器地址和**日志文件**的位置
 
 **TODO**
 
 - 现阶段只**支持**获取文本文件中的日志数据，后续将可支持其他格式（例如**压缩文件**）的日志数据
-- ……
+- 从Docker容器中捕获日志
 
 ## 实时日志
 
 ### 展示日志目标列表
 
-展示所有已经配置了的日志抓取目标。点击ViewLog，跳转到该个目标的日志查看页面
+启动工具，进入首页，会展示所有已经配置了的日志抓取目标。点击Realtime Log，跳转到该个目标的实时日志查看页面。![](./img/feat-realtime-01.png)
 
-![](./img/feat-realtime-01.png)
+### 实时抓取
+
+点击“Start'即可开始**实时**抓取日志文件中**新产生**的日志数据
+
+![](./img/feat-realtime-04.png)
+
+**Start**：开始抓取日志文件中的历史记录，然后实时获取新产生的日志
+
+**Stop**：停止抓取
+
+**Clean**：清除当前页面上的所有日志数据，但不会断开连接，还是会实时地呈现后端推送过来的日志信息
 
 ### 同时抓取
 
@@ -64,17 +75,7 @@
 
 ![](./img/feat-realtime-03.png)
 
-### 实时抓取
 
-可**实时**抓取日志文件中**新产生**的日志数据
-
-![](./img/feat-realtime-04.png)
-
-**Start**：开始抓取日志文件中的历史记录，然后实时获取新产生的日志
-
-**Stop**：停止抓取
-
-**Clean**：清除当前页面上的所有日志数据，但不会断开连接，还是会实时地呈现后端推送过来的日志信息
 
 ### 页内搜索
 
@@ -97,46 +98,94 @@
 
 
 
-# 技术栈
-
-**后端技术**
-
-- Spring Boot
-
-- SSH客户端的Java实现工具：jsch
-
-- Spring封装的WebSocket Server API：将SSH中执行命令后返回的数据，推送给前端
-
-**前端技术**
-
-- jQuery
-
-- JavaScript封装的WebSocket Client API：接收后端发来的数据，将其渲染到HTML页面
-
 # 本地运行
 
-**Step1：环境准备或检查**
+**Step1：**https://github.com/HackyleShawe/RemoteLogViewer
 
-- Java：11
-- SpringBoot：2.3.12.RELEASE
-- Apache Maven：3.6.3
-- Chrome Version：108.0.5359.94，在地址栏输入（chrome://version/）可获取
-
-**Step2：克隆项目到本地，从IDEA中打开，等待Maven自动配置完毕**
+**Step2：克隆项目到本地，从IDEA中打开（需要JDK17），等待Maven自动配置完毕**
 
 **Step3：填写项目的配置文件（application.yml），log.targets**
 
 - 指定SSH的连接参数：host，port，username，password
-
 - 远程服务器上的日志所在位置：logPath
 
-**Step4：运行启动类**：src/main/java/com/hackyle/log/viewer/RemoteLogViewerApp.java
+**Step4：运行启动类**：RemoteLogViewerApp.java
 
 **Step5：** 进入Chrome，在地址栏输入：http://localhost:8989/ ，进入日志查看首页
 
+# 系统设计
+
+**前置知识**
+
+- SpringBoot
+- SSH（Secure Shell）
+- WebSocket
+- Web前端（HTML、CSS、JavaScript、jQuery）
+
+如果你对上述知识默认，那么这个章节你看起来可能比较吃力，但是如果你愿意一边看此项目，一边去了解相关的知识，那你一定可以掌握此项目的设计要领。
 
 
-# 设计说明
+
+**主要流程**
+
+1. 前端发起一个WebSocket连接到后端
+2. 连接建立成功后，后端通过SSH连接到远程服务器
+3. 执行日志文件查看命令：
+   - 实时日志：tail -1f 日志文件的绝对路径，例如：tail -1f /data/log/blog-consumer.log
+   - 历史日志查找：grep -E -i 关键词、正则 文件路径
+4. 从SSH连接会话中，获取到该个命令的执行结果，通过WebSocket推送到前端页面上
+5. 如果出现错误或被关闭，则释放WS和SSH会话
+
+**注意：在一个浏览器页面，点一次Start，开启一个WebSocket连接、一个SSH连接，当点击Stop时，关闭WebSocket连接、SSH连接。**
+
+**为什么不是一个浏览器页面，一个Websocket、SSH连接？**
+
+- 如果是这种情况，参数只能通过wbesocket的send()、handleTextMessage()方法传递
+- 第一次点击Start，会创建SSH连接，执行tail命令读取日志文件流，并保持流写出到WebSocket，
+- 第二次点击Start，会因为第一次点击的文件流没有关闭，导致第二次点击的SSH连接无法建立
+- 况且，一旦点击次数很多，那些开辟的SSH连接、tail命令的文件流累计起来，无法关闭！
+
+**缓存Websocket、SSH连接会话？**
+
+- 当前发起WebSocket连接到后端并成功后，在后端会缓存当次Websocket、SSH连接会话
+- 数据结构：HashMap<wsSessionId, Websocket、SSH连接会话>
+
+**既然每次点击“Start”都要建立一次WS、SSH会话连接，那为什么还要缓存?**
+
+- 页面上有一个“Stop”按钮，表示结束日志的抓取，意味着主动关闭本次WS连接
+- 那么在页面主动的关闭一个WS时，怎么找到该个WS会话呢
+- 所以在创建时就缓存下来
+
+
+
+ **如何定义WS的endpoint？对外暴露ws接口？**
+
+- 在YML中定义ws接口：endpoints: /ws/log/realtime,/ws/log/search
+- 在WS配置类（WebSocketConfig implements WebSocketConfigurer）注入
+
+**WS的参数怎么传递？**
+
+- 前端
+  - 拼接在WS的URL中
+  - 等待建立连接成功后在发送
+- 后端
+  - 从URL中获取：在拦截器WebSocketInterceptor捕获URL中的参数，放在WsSession的Attribute中，后续从该个attribute中get
+  - 从WS会话中获取：从会话处理器中的handleTextMessage中获取
+
+**WS连接什么时候释放？**
+
+- 出现错误或者连接被关闭时，handleTransportError，afterConnectionClosed
+- 前端发送主动关闭的信号时，通过个HTTP接口通知WS关闭
+
+**SSH连接什么时候释放？**在WS释放时
+
+**为什么不将日志目标的连接信息放置在MySQL数据库中？**
+
+- 适用于被查看的日志目标量不大、比较固定
+- 这是一款面向开发人员的工具，而非面向普通用户。开发人员肯定懂得如何在YML配置文件中定义连接信息。
+- 为了使得本工具更加的轻量化、便捷化，尽可能地减少依赖，因此不使用MySQL数据库。
+
+# 技术实现
 
  **主要流程**
 
@@ -156,7 +205,21 @@
 
 ## 后端
 
-### 从YML中注入日志目标的参数
+### 整合SSH
+
+**主要步骤**
+
+1.导入jsch的POM依赖
+
+2.在配置文件（application.yml）中定义SSH的连接参数
+
+3.写一个业务类，定义创建SSH会话、关闭会话的方法
+
+​    a)使用注解（使用@Value(“${jsch.host}”)）从配置文件中载入参数
+
+​	b)创建会话方法：Session buildConnect()
+
+​	c)关闭会话方法：void destroyConnect(Session sshSession)
 
 **application.yml中定义日志目标参数**
 
@@ -191,10 +254,7 @@ log:
 - 这是一款面向开发人员的工具，而非面向普通用户。开发人员肯定懂得如何在YML配置文件中定义连接信息。
 - 为了使得本工具更加的轻量化、便捷化，尽可能地减少依赖，因此不使用MySQL数据库。
 
-
-### SSH工具类
-
-**使用jsch工具模拟SSH客户端，与SSH服务端建立连接**
+**SSH工具类：使用jsch工具模拟SSH客户端，与SSH服务端建立连接**
 
 - com/hackyle/log/viewer/util/JschUtils.java
 - Session **buildSshSession** (String host, int port, String username, String password) 构建并返回SSH连接会话
@@ -540,14 +600,14 @@ public String stopWebSocket(@RequestParam("sid") String sid) {
 
 ![](./img/jar03.png)
 
-**Step4**：写个启动脚本。本项目基于JDK11，建议手动设置临时的JDK环境变量，再启动Jar
+**Step4**：写个启动脚本。本项目基于JDK17，建议手动设置临时的JDK环境变量，再启动Jar
 
 ```bash
 # Windows操作系统批处理脚本，文件拓展名为：.cmd
-set JAVA_HOME=D:\ProgramFilesKS\Java\JDK11
+set JAVA_HOME=D:\ProgramFilesKS\Java\JDK17
 set path=%JAVA_HOME%\bin;%path%
 
-java -jar D:\D-Project\DevelopTools\remote-log-viewer-0.6.0.jar
+java -jar D:\D-Project\DevelopTools\remote-log-viewer.jar
 
 pause
 ```
